@@ -1,0 +1,6 @@
+去图片背景
+pip install rembg
+
+分类与抠图
+# Install the ultralytics package using pip
+pip install ultralytics

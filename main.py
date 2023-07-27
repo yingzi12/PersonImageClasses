@@ -34,10 +34,10 @@ def load_image_from_url(url):
 def yolo8Image(source,outFilePath):
 
     file_name = os.path.basename(source)
-
+    conf_threshold =0.8
     # Load a pretrained YOLO model (recommended for training)
     model = YOLO('yolov8n.pt')
-    results = model(source)  # list of Results objects
+    results = model(source, conf=conf_threshold)  # list of Results objects
     print('model: %s' % model)
     print("-----------------------------------------")
 
@@ -98,6 +98,6 @@ def yolo8Vedio():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    yolo8Vedio()
-
+    # yolo8Vedio()
+    operatorImage("heihei")
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

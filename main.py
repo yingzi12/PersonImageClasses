@@ -1,8 +1,12 @@
 # This is a sample Python script.
+import os
+
 import numpy as np
 import requests
 from ultralytics import YOLO
 import cv2
+import ImageBackground
+import ImageUtil
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -26,7 +30,7 @@ def load_image_from_url(url):
         print(f"Error loading image from URL: {str(e)}")
         return None
 
-def yolo8(source,image):
+def yolo8(source,image,outFilePath):
     # Create a new YOLO model from scratch
     model = YOLO('yolov8n.yaml')
 
@@ -48,30 +52,31 @@ def yolo8(source,image):
             print('box: %s' % box)
             print("-----------------------------------------")
             cls = box.cls[0]
-            xyxy = box.xyxy[0]
-            print('box.xyxy 0: %s' % xyxy[0])
-            print('box.xyxy 1: %s' % xyxy[1])
-            print('box.xyxy 2: %s' % xyxy[2])
-            print('box.xyxy 3: %s' % xyxy[3])
-            print(f"class {i} {j} {cls}")
-
-            # 裁剪图片
-            # cropped_image = image[17:y + height, x:x + width]
-            cropped_image = image[int(xyxy[1])+1:int( xyxy[3])+1, int(xyxy[0])+1: int(xyxy[2])+1]
-            cv2.imwrite(f"C:\\git\\PersonImageClasses\\{i}-{j}.jpg", cropped_image)
-            print("Image saved successfully!")
-
+            print(cls==0)
+            if(cls==0):
+                xyxy = box.xyxy[0]
+                # 裁剪图片
+                # cropped_image = image[17:y + height, x:x + width]
+                cropped_image = image[int(xyxy[1]) + 1:int(xyxy[3]) + 1, int(xyxy[0]) + 1: int(xyxy[2]) + 1]
+                if not os.path.exists(outFilePath):
+                    os.makedirs(outFilePath)
+                outFileName = f"{outFilePath}\\{i}-{j}.jpg";
+                cv2.imwrite(outFileName, cropped_image)
+                backFilePath=ImageBackground.remove_background_rembg(outFileName, outFilePath + "\\back");
+                ImageUtil.resize_image_with_padding(backFilePath, outFilePath +"\\white");
+                print("Image saved successfully!")
     model.predict(source, save=True, imgsz=320, conf=0.5, save_crop=True)
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
     # Define remote image or video URL
     source = 'https://ultralytics.com/images/bus.jpg'
+    outFilePath = 'C:\\git\\PersonImageClasses2'
     # 加载网络图片
     # loaded_image = load_image_from_url(source)
     # 加载网络图片
     image = load_image_from_url(source)
-    yolo8(source,image)
+    yolo8(source,image,outFilePath)
     # if image is not None:
     #     # 显示原始图片
     #     cv2.imshow("Original Image", image)

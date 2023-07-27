@@ -1,6 +1,17 @@
-import cv2
+import os
 
-def resize_image_with_padding(image, target_size):
+import cv2
+import numpy as np
+
+
+def resize_image_with_padding(input_path,outFilePath):
+    # 使用os.path.basename()函数获取文件名称
+    file_name = os.path.basename(input_path)
+    # 读取图片
+    image = cv2.imread(input_path)
+    # 设置目标尺寸（宽度，高度）
+    target_size = (512, 512)  # 替换为你想要的缩放尺寸
+
     # 获取原始图像尺寸
     height, width = image.shape[:2]
 
@@ -22,21 +33,26 @@ def resize_image_with_padding(image, target_size):
     y_offset = (target_size[1] - new_height) // 2
     background[y_offset:y_offset + new_height, x_offset:x_offset + new_width] = resized_image
 
+    # 检查目录是否存在，如果不存在则创建目录
+    if not os.path.exists(outFilePath):
+        os.makedirs(outFilePath)
+    cv2.imwrite(f"{outFilePath}/white_{file_name}.jpg", background)
     return background
 
 # 要缩放的图片路径
-image_path = 'path/to/your/image.jpg'  # 替换为你要缩放的图片路径
-
-# 读取图片
-image = cv2.imread(image_path)
-
-# 设置目标尺寸（宽度，高度）
-target_size = (800, 600)  # 替换为你想要的缩放尺寸
-
-# 缩放图片并进行填充
-resized_image = resize_image_with_padding(image, target_size)
-
-# 显示缩放后的结果
-cv2.imshow("Resized Image", resized_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# image_path = 'path/to/your/image.jpg'  # 替换为你要缩放的图片路径
+# outFilePaht = 'path/to/your/image.jpg'  # 替换为你要缩放的图片路径
+#
+# # 读取图片
+# image = cv2.imread(image_path)
+#
+# # 设置目标尺寸（宽度，高度）
+# target_size = (512, 512)  # 替换为你想要的缩放尺寸
+#
+# # 缩放图片并进行填充
+# resized_image = resize_image_with_padding(image, target_size,outFilePaht)
+#
+# # 显示缩放后的结果
+# cv2.imshow("Resized Image", resized_image)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()

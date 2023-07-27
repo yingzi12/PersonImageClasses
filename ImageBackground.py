@@ -3,7 +3,7 @@ import os
 
 from rembg import remove
 
-def remove_background_rembg(input_path, output_path):
+def remove_background_rembg(fileName,input_path, output_path):
     # 使用os.path.basename()函数获取文件名称
     file_name = os.path.basename(input_path)
     # 读取图片并进行背景去除

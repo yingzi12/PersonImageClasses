@@ -30,7 +30,7 @@ def load_image_from_url(url):
         print(f"Error loading image from URL: {str(e)}")
         return None
 
-def yolo8(source,outFilePath):
+def yolo8Image(source,outFilePath):
 
     file_name = os.path.basename(source)
 
@@ -61,10 +61,10 @@ def yolo8(source,outFilePath):
                 # cv2.imwrite(outFileName, cropped_image)
                 cutOutFileName=ImageUtil.crop_hd_image(source,outFilePath+"/cutOut/"+fileName,int(xyxy[0]) + 1,int(xyxy[1]) + 1, int(xyxy[2]) + 1, int(xyxy[3]) + 1)
                 backFilePath=ImageBackground.remove_background_rembg(fileName,cutOutFileName, outFilePath + "/back");
-                ImageUtil.resize_image_with_padding(fileName,backFilePath, outFilePath +"/white");
+                ImageUtil.resize_image_with_padding(fileName,backFilePath, outFilePath);
                 print("Image saved successfully!")
     model.predict(source, save=True, imgsz=320, conf=0.5, save_crop=True)
-def print_hi(name):
+def operatorImage(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
     # Define remote image or video URL
@@ -80,12 +80,33 @@ def print_hi(name):
         os.makedirs(outFilePath+"/cutOut")
     if not os.path.exists(outFilePath+"/back"):
         os.makedirs(outFilePath+"/back")
+        # 保存高分辨率图像
+    if not os.path.exists(outFilePath+"/repair"):
+        os.makedirs(outFilePath+"/repair")
     # 加载网络图片
-    yolo8(source,outFilePath)
+    yolo8Image(source,outFilePath)
 
+def yolo8Vedio():
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
+
+    # Define source as YouTube video URL
+    source = 'test.mp4'
+
+    # Run inference on the source
+    results = model(source, stream=True)  # generator of Results objects
+    model.predict(source, save=True, imgsz=320, conf=0.5,save_crop=True,retina_masks=True,classes=[0])
+    for result in results:  # 第二个实例
+        i = i + 1
+        print('result: %s' % result)
+        print("-----------------------------------------")
+        boxes = result.boxes
+        for box in boxes:  # 第二个实例
+            j = j + 1
+            print('box: %s' % box)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    yolo8Vedio()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

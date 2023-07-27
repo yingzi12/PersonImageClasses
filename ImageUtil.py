@@ -17,7 +17,7 @@ def resize_image_with_padding(fileName,input_path, outFilePath, scale_factor=4):
     # 获取原始图像尺寸
     height, width = image.shape[:2]
     if(height<1024):
-       input_path= imageRealESRGAN(file_name,input_path,outFilePath)
+       input_path= imageRealESRGAN(file_name,input_path,outFilePath+"/repair")
        image = cv2.imread(input_path)
        height, width = image.shape[:2]
 
@@ -42,7 +42,7 @@ def resize_image_with_padding(fileName,input_path, outFilePath, scale_factor=4):
     # 检查目录是否存在，如果不存在则创建目录
     if not os.path.exists(outFilePath):
         os.makedirs(outFilePath)
-    whitePath=outFilePath+"/white_"+file_name
+    whitePath=outFilePath+"/white/white_"+file_name
     cv2.imwrite(whitePath, high_res_image)
     return whitePath
 
@@ -61,10 +61,8 @@ def imageRealESRGAN(file_name,inputImagePath,outFilePath):
 
     sr_image = model.predict(image)
 
-    # 保存高分辨率图像
-    if not os.path.exists(f"{outFilePath}/xf"):
-        os.makedirs(f"{outFilePath}/xf")
-    output_image_path = f"{outFilePath}/xf/{file_name}"
+
+    output_image_path = f"{outFilePath}/{file_name}"
     sr_image.save(output_image_path)
     return output_image_path;
 
@@ -84,3 +82,22 @@ def crop_hd_image(input_path, output_path_name, left, upper, right, lower):
     # 保存裁剪后的图像
     cropped_image.save(output_path_name);
     return output_path_name;
+
+#视频转图片
+def video_to_images(input_video, output_folder):
+    cap = cv2.VideoCapture(input_video)
+    if not cap.isOpened():
+        print("Error opening video file.")
+        return
+
+    frame_count = 0
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        output_file = f"{output_folder}/frame_{frame_count}.png"
+        cv2.imwrite(output_file, frame)
+        frame_count += 1
+
+    cap.release()

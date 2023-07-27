@@ -4,7 +4,7 @@ import numpy as np
 from ultralytics import YOLO
 
 # 加载预训练的 YOLO 模型
-model = YOLO('yolov5s.pt')
+model = YOLO('yolov8n.pt')
 
 def process_frame(frame, frame_count, output_folder, skip_frames=5):
     # 在每 `skip_frames` 帧上运行处理
@@ -41,10 +41,4 @@ def process_video(input_video, output_folder, skip_frames=5):
 
     cap.release()
 
-# 调用函数示例：
-video_file = 'input_video.mp4'
-output_folder = 'output_detected_images'
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
-skip_frames = 5  # 每隔5帧处理一次
-process_video(video_file, output_folder, skip_frames)
+

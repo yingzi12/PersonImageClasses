@@ -7,6 +7,7 @@ from ultralytics import YOLO
 import cv2
 import ImageBackground
 import ImageUtil
+from Yolo8Vedio import process_video
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -87,23 +88,13 @@ def operatorImage(name):
     yolo8Image(source,outFilePath)
 
 def yolo8Vedio():
-    # Load a pretrained YOLOv8n model
-    model = YOLO('yolov8n.pt')
-
-    # Define source as YouTube video URL
-    source = 'test.mp4'
-
-    # Run inference on the source
-    results = model(source, stream=True)  # generator of Results objects
-    model.predict(source, save=True, imgsz=320, conf=0.5,save_crop=True,retina_masks=True,classes=[0])
-    for result in results:  # 第二个实例
-        i = i + 1
-        print('result: %s' % result)
-        print("-----------------------------------------")
-        boxes = result.boxes
-        for box in boxes:  # 第二个实例
-            j = j + 1
-            print('box: %s' % box)
+    # 调用函数示例：
+    video_file = 'test.mp4'
+    output_folder = 'output_detected_images'
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    skip_frames = 5  # 每隔5帧处理一次
+    process_video(video_file, output_folder, skip_frames)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':

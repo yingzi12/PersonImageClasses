@@ -5,5 +5,10 @@ pip install rembg
 # Install the ultralytics package using pip
 pip install ultralytics
 
-
+#图片高精
 pip install git+https://github.com/sberbank-ai/Real-ESRGAN.git
+
+图片分类
+
+pip install scikit-learn
+pip install keras

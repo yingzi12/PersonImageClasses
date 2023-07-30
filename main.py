@@ -1,5 +1,7 @@
 # This is a sample Python script.
 import os
+
+import torch
 from PIL import Image
 import numpy as np
 import requests
@@ -69,8 +71,8 @@ def operatorImage(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
     # Define remote image or video URL
-    source = 'C:\\git\\PersonImageClasses2\\bus.jpg'
-    outFilePath = 'C:\\git\\PersonImageClasses2'
+    source = 'D:\\git\\PersonImageClasses2\\bus.jpg'
+    outFilePath = 'D:\\git\\PersonImageClasses2'
     # 加载网络图片
     # loaded_image = load_image_from_url(source)
     if not os.path.exists(outFilePath):
@@ -88,16 +90,41 @@ def operatorImage(name):
     yolo8Image(source,outFilePath)
 
 def yolo8Vedio():
+    folder_path = "E:\\person\\ANYUJIN"  # 替换成实际文件夹路径
+    output_folder = 'E:\\person_image\\ANYUJIN'
+
+    # 获取文件夹中的文件和子文件夹列表
+    files = os.listdir(folder_path)
+    i=0;
+    # 输出文件列表
+    for file in files:
+        # 拼接文件的完整路径
+        file_path = os.path.join(folder_path, file)
+
+        # 判断是否为文件
+        if os.path.isfile(file_path):
+            i = i + 1
+            if not os.path.exists(output_folder + "\\" + str(i)):
+                os.makedirs(output_folder + "\\" + str(i))
+            skip_frames = 1  # 每隔5帧处理一次
+            process_video(file_path, output_folder + "\\" + str(i), skip_frames)
+            print("File:", file_path)
+        # 判断是否为子文件夹
+        elif os.path.isdir(file_path):
+            print("Folder:", file_path)
+        # 可以根据需要继续添加其他类型的判断，例如符号链接等
     # 调用函数示例：
-    video_file = 'test.mp4'
-    output_folder = 'output_detected_images'
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-    skip_frames = 5  # 每隔5帧处理一次
-    process_video(video_file, output_folder, skip_frames)
+ #   video_file = 'E:\\down\\DM_20230726002609_001.webm'
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # yolo8Vedio()
-    operatorImage("heihei")
+    print(torch.__version__)
+    print(torch.cuda.is_available)
+    if torch.cuda.is_available():
+        print("CUDA is available.")
+    else:
+        print("CUDA is not available.")
+    yolo8Vedio()
+    #operatorImage("heihei")
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -1,11 +1,13 @@
 import os
 import cv2
-import numpy as np
+import torch
 from ultralytics import YOLO
 
 # 加载预训练的 YOLO 模型
 model = YOLO('yolov8n.pt')
-
+# 将模型移动到CUDA设备上
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model.to(device)
 def process_frame(frame, frame_count, output_folder, skip_frames=5):
     # 在每 `skip_frames` 帧上运行处理
     if frame_count % skip_frames == 0:

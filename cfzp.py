@@ -1,73 +1,95 @@
-#去重复照片
+#要根据文件的相似度来去重，可以使用图像特征向量的余弦相似度来衡量图像之间的相似度。
+# 我们可以使用ResNet50模型提取图像的特征向量，然后计算特征向量之间的余弦相似度。
+# 如果余弦相似度超过某个阈值，则认为这两个图像是相似的，并将其中一个视为重复图像。
 import os
 import shutil
+
+import numpy as np
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
-import imagehash
+
+# 如果可用，加载CUDA设备
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def get_perceptual_hash(image_path):
-    # 加载图像并将其转换为灰度图像
-    img = Image.open(image_path).convert('L')
+def extract_features(image_path, model):
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
 
-    # 将图像调整为固定尺寸以进行一致的哈希计算
-    img = img.resize((8, 8), Image.ANTIALIAS)
+    img = Image.open(image_path)
+    img_tensor = transform(img)
+    img_tensor = torch.unsqueeze(img_tensor, 0).to(device)
+    with torch.no_grad():
+        features = model(img_tensor)
+    features = features.squeeze().cpu().numpy()
+    return features
 
-    # 计算图像的感知哈希
-    return imagehash.phash(img)
+def cosine_similarity(features1, features2):
+    dot_product = np.dot(features1, features2)
+    norm1 = np.linalg.norm(features1)
+    norm2 = np.linalg.norm(features2)
+    similarity = dot_product / (norm1 * norm2)
+    return similarity
 
-
-def remove_duplicates(input_folder, output_folder):
+def remove_duplicates(input_folder, output_folder, threshold=0.9):
     # 如果输出文件夹不存在，则创建输出文件夹
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-
-    # 列出输入文件夹中的所有图像文件
-    image_files = [file for file in os.listdir(input_folder) if file.lower().endswith(('.jpg', '.jpeg', '.png'))]
-
-    # 初始化一个字典来存储感知哈希和对应的文件名
-    hash_dict = {}
-
-    # 如果可用，加载CUDA设备
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # 定义转换以对ResNet50中的图像进行归一化处理
-    transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
 
     # 加载带有CUDA的ResNet50模型
     model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet50', pretrained=True)
     model.to(device)
     model.eval()
 
-    # 遍历所有图像文件
-    for image_file in image_files:
-        image_path = os.path.join(input_folder, image_file)
-
-        # 计算图像的感知哈希
-        p_hash = get_perceptual_hash(image_path)
-
-        # 检查感知哈希是否已在哈希字典中
-        if p_hash in hash_dict:
-            # 如果哈希已经在字典中，则说明是重复图像
-            print(f"重复照片：{image_file}")
-        else:
-            # 如果哈希不在字典中，则说明是新图像
-            hash_dict[p_hash] = image_file
-
-            # 将新图像复制到输出文件夹
-            shutil.copy(image_path, os.path.join(output_folder, image_file))
-            print(f"唯一照片：{image_file}")
+    # 遍历输入文件夹中的所有文件和子文件夹
+    for root, _, files in os.walk(input_folder):
+        for file in files:
+            if file.lower().endswith(('.jpg', '.jpeg', '.png')):
+                image_path = os.path.join(root, file)
+                output_subfolder = os.path.relpath(root, input_folder)
+                output_subfolder_path = os.path.join(output_folder, output_subfolder)
+                # 处理当前图像文件
+                process_image(image_path, model, output_subfolder_path, threshold)
 
     print("重复照片去除完成。")
 
+def process_image(image_path, model, output_folder, threshold):
+    # 如果输出子文件夹不存在，则创建输出子文件夹
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    # 提取图像的特征向量
+    features1 = extract_features(image_path, model)
+
+    is_duplicate = False
+    # 遍历输出子文件夹中的已处理过的图像文件
+    for processed_image in os.listdir(output_folder):
+        processed_image_path = os.path.join(output_folder, processed_image)
+
+        # 提取已处理图像的特征向量
+        features2 = extract_features(processed_image_path, model)
+
+        # 计算特征向量的余弦相似度
+        similarity = cosine_similarity(features1, features2)
+
+        # 如果相似度超过阈值，则认为是重复图像
+        if similarity > threshold:
+            is_duplicate = True
+            break
+
+    if not is_duplicate:
+        # 将非重复图像复制到输出子文件夹
+        shutil.copy(image_path, os.path.join(output_folder, os.path.basename(image_path)))
+        print(f"唯一照片：{os.path.basename(image_path)}")
+
 
 if __name__ == "__main__":
-    input_folder = "替换为你的输入文件夹路径"  # 替换为包含要去除重复的图像的文件夹路径
-    output_folder = "替换为你的输出文件夹路径"  # 替换为存储去除重复图像的文件夹路径
+    input_folder = "E:\\person_image_copy\\ANYUJIN"  # 替换为包含要去除重复的图像的文件夹路径
+    output_folder = "E:\\person_image_copy_2\\ANYUJIN"  # 替换为存储去除重复图像的文件夹路径
     remove_duplicates(input_folder, output_folder)
+
+

@@ -69,25 +69,31 @@ def copy_file(source_file, destination_folder):
         print(f"File '{filename}' copied to '{destination_folder}' successfully.")
     except Exception as e:
         print(f"Error copying file: {e}")
+
 def main():
-    folder_path = "E:\\person_image\\ANYUJIN\\4"  # Replace with the folder path containing your images
-    copy_path = "E:\\person_image_copy\\ANYUJIN\\4"
-    image_paths = [os.path.join(folder_path, file) for file in os.listdir(folder_path)]
+    main_folder_path = "E:\\person_image\\ANYUJIN"  # Replace with the main folder path containing subfolders with images
+    main_copy_path = "E:\\person_image_copy\\ANYUJIN"
 
-    # Extract features using ResNet50
-    features = extract_features(image_paths)
+    subfolders = os.listdir(main_folder_path)
+    for subfolder in subfolders:
+        folder_path = os.path.join(main_folder_path, subfolder)
+        copy_path = os.path.join(main_copy_path, subfolder)
 
-    # Set the number of clusters for KMeans
-    num_clusters = 5
+        image_paths = [os.path.join(folder_path, file) for file in os.listdir(folder_path)]
 
-    # Apply KMeans clustering on the features
-    predicted_labels = kmeans_clustering(features, num_clusters)
+        # Extract features using ResNet50
+        features = extract_features(image_paths)
 
-    # Display the results
-    for label, path in zip(predicted_labels, image_paths):
-        create_folder_if_not_exists(copy_path+"\\"+str(label))
-        copy_file(path,copy_path+"\\"+str(label))
-        #print(f"Image at path '{path}' belongs to cluster {label}.")
+        # Set the number of clusters for KMeans
+        num_clusters = 5
+
+        # Apply KMeans clustering on the features
+        predicted_labels = kmeans_clustering(features, num_clusters)
+
+        # Copy images to the corresponding cluster folders
+        for label, path in zip(predicted_labels, image_paths):
+            create_folder_if_not_exists(os.path.join(copy_path, str(label)))
+            copy_file(path, os.path.join(copy_path, str(label)))
 
 if __name__ == "__main__":
-        main()
+    main()
